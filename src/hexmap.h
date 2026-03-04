@@ -1,10 +1,7 @@
 #pragma once
 #include <set>
 #include <vector>
-
-#include "SFML/System/Vector2.hpp"
-#include "SFML/System/Vector3.hpp"
-
+#include <glm/vec3.hpp>
 
 namespace hexmap {
     struct Hex {
@@ -22,7 +19,7 @@ namespace hexmap {
         ~Hexmap() = default;
         [[nodiscard]] float getHexSize() const { return hexSize; }
         [[nodiscard]] float getHexHeight() const { return hexHeight; }
-        [[nodiscard]] sf::Vector3f hexToWorldPosition(Hex hex) const;
-        [[nodiscard]] std::vector<sf::Vector3f> getVertices() const;
+        [[nodiscard]] glm::vec3 hexToWorldPosition(Hex hex) const;
+        [[nodiscard]] std::vector<glm::vec3> getVertices() const;
     };
 }

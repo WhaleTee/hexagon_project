@@ -1,0 +1,6 @@
+set(SDLTTF_VENDORED ON)
+
+add_subdirectory(${VENDORED_FILES_DIRECTORY}/SDL EXCLUDE_FROM_ALL)
+add_subdirectory(${VENDORED_FILES_DIRECTORY}/SDL_ttf EXCLUDE_FROM_ALL)
+
+target_link_libraries(${PROJECT_NAME}-run PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf)
