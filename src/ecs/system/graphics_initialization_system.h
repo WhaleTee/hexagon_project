@@ -3,7 +3,7 @@
 #include "SDL3/SDL_video.h"
 #include "base_system.h"
 
-namespace ecs::systems {
+namespace ecs::system {
   class graphics_initialization_system final : public system {
     bool initialized{false};
 
@@ -13,7 +13,7 @@ namespace ecs::systems {
     ~graphics_initialization_system() override = default;
 
     bool update() noexcept override {
-      using namespace ecs::components;
+      using namespace ecs::component;
 
       const auto view = registry.view<gpu_device_setting_component, window_setting_component>().each();
       for (auto [entity, gpu_settings, window_settings]: view) {
@@ -33,10 +33,6 @@ namespace ecs::systems {
 
       mark_to_destroy();
       return true;
-    }
-
-    static constexpr std::string get_class_name() noexcept {
-      return "graphics_initialization_system";
     }
   };
 } // namespace ecs::systems

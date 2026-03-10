@@ -2,7 +2,7 @@
 #include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_video.h"
 
-namespace ecs::components {
+namespace ecs::component {
   struct window_component {
     SDL_Window* value_ptr;
   };

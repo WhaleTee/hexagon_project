@@ -1,36 +1,36 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.14)
+
 project(hexagon-field VERSION 0.0.1 LANGUAGES CXX)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIGURATION>)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIGURATION>)
-set(RESOURCES_DIRECTORY ${CMAKE_SOURCE_DIR}/resources)
-set(RESOURCES_OUTPUT_DIRECTORY $<TARGET_FILE_DIR:${PROJECT_NAME}-run>/resources)
-set(CMAKE_FILES_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake)
-set(VENDORED_FILES_DIRECTORY ${CMAKE_SOURCE_DIR}/vendored)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_FILES_DIRECTORY})
+set(CMAKE_RUNTIME_OUTPUT_DIR ${CMAKE_BINARY_DIR}/$<CONFIGURATION:${PROJECT_NAME}-run>)
+set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets)
+set(ASSETS_OUTPUT_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}-run>/assets)
+set(BINARY_OUTPUT_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}-run>/bin)
+set(CMAKE_DIR ${CMAKE_SOURCE_DIR}/cmake)
+set(VENDORED_SOURCE_DIRECTORY ${CMAKE_SOURCE_DIR}/vendored)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_DIR})
 set(
         SRC
-        src/main.cpp
         src/hexmap.h
         src/hexmap.cpp
         src/exception/sdl_exception.h
         src/sdl_engine.cpp
         src/sdl_engine.h
-        src/ecs/systems/base_system.h
+        src/ecs/system/base_system.h
         src/ecs/system_manager.h
-        src/ecs/world.h
+        src/ecs/game_world.h
         src/event/game_quit_event.h
         src/event/dispatcher_invoker.h
         src/timer/sdl_timer.h
         src/timer/sdl_timer.cpp
-        src/ecs/systems/graphics_initialization_system.h
+        src/ecs/system/graphics_initialization_system.h
         src/ecs/system_manager.cpp
-        src/ecs/world.cpp
+        src/ecs/game_world.cpp
         src/event/game_start_event.h
-        src/ecs/components.h
-        src/ecs/systems/graphics_destroy_system.h
-        src/ecs/system_manager.ipp
-        src/ecs/systems/load_configuration_system.h
+        src/ecs/component.h
+        src/ecs/system/graphics_destroy_system.h
+        src/ecs/system/load_configuration_system.h
+        src/event/game_world_destroy_event.h
 )
 
 add_executable(${PROJECT_NAME}-run ${SRC})
@@ -44,9 +44,9 @@ set_target_properties(
         CXX_EXTENSIONS OFF
 )
 
-include(AddSDL)
-
 include(FetchContent)
+
+include(AddSDL)
 
 FetchContent_Declare(
         EnTT
@@ -81,5 +81,5 @@ target_link_libraries(${PROJECT_NAME}-run PRIVATE libfyaml::libfyaml)
 add_custom_command(
         TARGET ${PROJECT_NAME}-run PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${RESOURCES_DIRECTORY} ${RESOURCES_OUTPUT_DIRECTORY}
+        ${ASSETS_DIR} ${ASSETS_OUTPUT_DIR}
 )

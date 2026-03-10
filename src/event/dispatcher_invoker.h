@@ -6,7 +6,7 @@ namespace event {
   struct dispatcher_invoker {
     constexpr dispatcher_invoker() noexcept = default;
 
-    void operator()(entt::dispatcher& dispatcher, Args&&... args) noexcept {
+    void operator()(entt::dispatcher& dispatcher, Args&&... args) const noexcept {
       dispatcher.trigger<T>(std::forward<Args>(args)...);
     }
   };

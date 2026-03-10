@@ -13,12 +13,11 @@ namespace timer {
     void start() noexcept;
     void stop() noexcept;
     void pause() noexcept;
-    void unpause() noexcept;
     void set_rate(int) noexcept;
     [[nodiscard]] bool is_started() const noexcept;
     [[nodiscard]] bool is_paused() const noexcept;
     [[nodiscard]] Uint64 get_ticks() const noexcept;
     [[nodiscard]] Uint64 get_fixed_ticks() const noexcept;
-    [[nodiscard]] Uint64 get_delay_to_fixed_ticks() const noexcept;
+    [[nodiscard]] Uint64 get_delay() const noexcept;
   };
 } // namespace timer

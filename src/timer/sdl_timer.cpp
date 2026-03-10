@@ -3,12 +3,21 @@
 
 namespace timer {
   void sdl_timer::start() noexcept {
-    started = true;
-    paused = false;
-    start_ticks = SDL_GetTicks();
+    if (started && paused) {
+      paused = false;
+      start_ticks = SDL_GetTicks() - pause_ticks;
+      pause_ticks = 0;
+    }
+    else {
+      started = true;
+      paused = false;
+      start_ticks = SDL_GetTicks();
+    }
   }
 
   void sdl_timer::stop() noexcept {
+    if (!started) return;
+
     started = false;
     paused = false;
     start_ticks = 0;
@@ -20,14 +29,6 @@ namespace timer {
       paused = true;
       pause_ticks = SDL_GetTicks() - start_ticks;
       start_ticks = 0;
-    }
-  }
-
-  void sdl_timer::unpause() noexcept {
-    if (started && paused) {
-      paused = false;
-      start_ticks = SDL_GetTicks() - pause_ticks;
-      pause_ticks = 0;
     }
   }
 
@@ -57,7 +58,7 @@ namespace timer {
     return 1000 / rate;
   }
 
-  [[nodiscard]] Uint64 sdl_timer::get_delay_to_fixed_ticks() const noexcept {
+  [[nodiscard]] Uint64 sdl_timer::get_delay() const noexcept {
     Uint64 delay{0};
     if (rate > 0) {
       const Uint64 rate_ms = get_fixed_ticks();
