@@ -1,2 +1,0 @@
-set(SDL_shadercross_POPULATED OFF CACHE BOOL "")
-set(SDL_shadercross_SOURCE_DIR_EXISTS OFF CACHE BOOL "")
