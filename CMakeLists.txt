@@ -2,13 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 
 project(hexagon-field VERSION 0.0.1 LANGUAGES CXX)
 
-set(CMAKE_RUNTIME_OUTPUT_DIR ${CMAKE_BINARY_DIR}/$<CONFIGURATION:${PROJECT_NAME}-run>)
 set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets)
-set(ASSETS_OUTPUT_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}-run>/assets)
-set(BINARY_OUTPUT_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}-run>/bin)
-set(CMAKE_DIR ${CMAKE_SOURCE_DIR}/cmake)
-set(VENDORED_SOURCE_DIRECTORY ${CMAKE_SOURCE_DIR}/vendored)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_DIR})
+set(ASSETS_OUTPUT_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)
 set(
         SRC
         src/hexmap.h
@@ -33,12 +28,12 @@ set(
         src/event/game_world_destroy_event.h
 )
 
-add_executable(${PROJECT_NAME}-run ${SRC})
+add_executable(${PROJECT_NAME} ${SRC})
 
-target_compile_features(${PROJECT_NAME}-run PRIVATE cxx_std_23)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 
 set_target_properties(
-        ${PROJECT_NAME}-run PROPERTIES
+        ${PROJECT_NAME} PROPERTIES
         CXX_STANDARD 23
         CMAKE_CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
@@ -46,40 +41,44 @@ set_target_properties(
 
 include(FetchContent)
 
-include(AddSDL)
+FetchContent_Declare(
+        SDL
+        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+        GIT_TAG release-3.4.2
+        EXCLUDE_FROM_ALL
+)
+FetchContent_MakeAvailable(SDL)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
 
 FetchContent_Declare(
         EnTT
         GIT_REPOSITORY https://github.com/skypjack/entt.git
         GIT_TAG v3.16.0
         EXCLUDE_FROM_ALL
-        SYSTEM
 )
 FetchContent_MakeAvailable(EnTT)
-target_link_libraries(${PROJECT_NAME}-run PRIVATE EnTT::EnTT)
+target_link_libraries(${PROJECT_NAME} PRIVATE EnTT::EnTT)
 
 FetchContent_Declare(
         GLM
         GIT_REPOSITORY https://github.com/g-truc/glm.git
         GIT_TAG 1.0.3
         EXCLUDE_FROM_ALL
-        SYSTEM
 )
 FetchContent_MakeAvailable(GLM)
-target_link_libraries(${PROJECT_NAME}-run PRIVATE glm::glm)
+target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm)
 
 FetchContent_Declare(
         LIBFYAML
         GIT_REPOSITORY https://github.com/pantoniou/libfyaml.git
         GIT_TAG v0.9.5
         EXCLUDE_FROM_ALL
-        SYSTEM
 )
 FetchContent_MakeAvailable(LIBFYAML)
-target_link_libraries(${PROJECT_NAME}-run PRIVATE libfyaml::libfyaml)
+target_link_libraries(${PROJECT_NAME} PRIVATE libfyaml::libfyaml)
 
 add_custom_command(
-        TARGET ${PROJECT_NAME}-run PRE_BUILD
+        TARGET ${PROJECT_NAME} PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${ASSETS_DIR} ${ASSETS_OUTPUT_DIR}
 )

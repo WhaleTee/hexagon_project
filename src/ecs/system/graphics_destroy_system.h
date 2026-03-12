@@ -16,9 +16,9 @@ namespace ecs::system {
     bool update() noexcept override {
       using namespace ecs::component;
 
-      const auto view = registry.view<gpu_device_component, window_component, graphics_destroy_request_tag>().each();
+      const auto view = registry.view<gpu_device_component, window_component, graphics_destroy_request_tag>();
       if (view.begin() == view.end()) return false;
-      for (auto [entity, device, window]: view) {
+      for (const auto& [entity, device, window]: view.each()) {
         SDL_ReleaseWindowFromGPUDevice(device.value_ptr, window.value_ptr);
         SDL_DestroyWindow(window.value_ptr);
         SDL_DestroyGPUDevice(device.value_ptr);
