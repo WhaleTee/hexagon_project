@@ -9,7 +9,7 @@
 namespace ecs::system {
   class graphics_destroy_system final : public system {
   public:
-    graphics_destroy_system(entt::registry& registry, entt::dispatcher& dispatcher) noexcept : system(registry, dispatcher) {}
+    explicit graphics_destroy_system(entt::registry& registry) noexcept : system(registry) {}
 
     ~graphics_destroy_system() override = default;
 
@@ -23,8 +23,6 @@ namespace ecs::system {
         SDL_DestroyWindow(window.value_ptr);
         SDL_DestroyGPUDevice(device.value_ptr);
       }
-
-      dispatcher.trigger<event::game_world_destroy_event>();
       mark_to_destroy();
       return true;
     }

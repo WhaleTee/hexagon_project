@@ -7,25 +7,30 @@ set(ASSETS_OUTPUT_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)
 set(
         SRC
         src/hexmap.h
-        src/hexmap.cpp
         src/exception/sdl_exception.h
         src/sdl_engine.cpp
         src/sdl_engine.h
-        src/ecs/system/base_system.h
-        src/ecs/system_manager.h
-        src/ecs/game_world.h
         src/event/game_quit_event.h
         src/event/dispatcher_invoker.h
         src/timer/sdl_timer.h
         src/timer/sdl_timer.cpp
-        src/ecs/system/graphics_initialization_system.h
-        src/ecs/system_manager.cpp
-        src/ecs/game_world.cpp
         src/event/game_start_event.h
-        src/ecs/component.h
-        src/ecs/system/graphics_destroy_system.h
-        src/ecs/system/load_configuration_system.h
         src/event/game_world_destroy_event.h
+        src/hexagon.h
+        src/sdl_game_app.h
+        src/sdl_app_renderer.h
+        src/rendering/render_primitive_system.h
+        src/camera.h
+        src/rendering/copy_command_buffer.h
+        src/rendering/component.h
+        src/rendering/data.h
+        src/rendering/render_command_buffer.h
+        src/rendering/copy_pass.h
+        src/rendering/vertex_buffer.h
+        src/rendering/index_buffer.h
+        src/rendering/gpu_device.h
+        src/rendering/gpu_device.h
+        src/rendering/entity.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC})

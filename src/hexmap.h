@@ -1,25 +1,41 @@
 #pragma once
-#include <set>
-#include <vector>
+#include "hexagon.h"
 #include <glm/vec3.hpp>
+#include <set>
 
 namespace hexmap {
-    struct Hex {
-        int q, r, s;
-    };
+  class hexmap {
+    glm::vec3 position{};
+    std::size_t map_size;
+    float hex_size;
+    float hex_height;
+    bool is_flat_top;
+    std::set<hexagon> hexes;
 
-    class Hexmap {
-        unsigned int size;
-        float hexSize;
-        float hexHeight;
-        std::set<Hex> hexes;
+  public:
+    hexmap(const std::size_t size, const float hex_size, const float hex_height, const bool flat_top) :
+        map_size(size), hex_size(hex_size), hex_height(hex_height), is_flat_top(flat_top) {}
 
-    public:
-        Hexmap(const int size, const float hexSize, const float hexHeight): size(size), hexSize(hexSize), hexHeight(hexHeight) {}
-        ~Hexmap() = default;
-        [[nodiscard]] float getHexSize() const { return hexSize; }
-        [[nodiscard]] float getHexHeight() const { return hexHeight; }
-        [[nodiscard]] glm::vec3 hexToWorldPosition(Hex hex) const;
-        [[nodiscard]] std::vector<glm::vec3> getVertices() const;
-    };
-}
+    [[nodiscard]] glm::vec3 get_hexagon_world_position(const hexagon& hex) const {
+      return hex.get_world_position() + position;
+    }
+
+    [[nodiscard]] hexagon_coordinates get_hexagon_in_position(const glm::vec2& world_position) const {
+      const float sqrt_3_b_3 = sqrtf(3) / 3;
+      const auto x = world_position.x / hex_size;
+      const auto y = world_position.y / hex_size;
+      const auto q = is_flat_top ? 2.f / 3 * x : sqrt_3_b_3 * x - 1.f / 3 * y;
+      const auto r = is_flat_top ? -1.f / 3 * x + sqrt_3_b_3 * y : 2.f / 3 * y;
+
+      return hexagon_coordinates{q, r};
+    }
+
+    [[nodiscard]] std::set<hexagon> get_hexes() const {
+      return hexes;
+    }
+
+    void set_position(const glm::vec3& value) {
+      position = value;
+    }
+  };
+} // namespace hexmap

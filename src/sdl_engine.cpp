@@ -9,8 +9,6 @@
 #include <numeric>
 #include <vector>
 
-#include "sdl_engine.h"
-
 // initialization steps: init sdl systems, create world
 // in the world: create scenes, register systems and create entities
 // run steps: run world, scenes, systems
@@ -95,7 +93,7 @@ struct gpu_transfer_download_buffer_component {
 
 class create_gpu_transfer_buffers final : public ecs::system::system {
 public:
-  create_gpu_transfer_buffers(entt::registry& registry, entt::dispatcher& dispatcher) noexcept : base_system(registry, dispatcher) {}
+  explicit create_gpu_transfer_buffers(entt::registry& registry) noexcept : base_system(registry) {}
   ~create_gpu_transfer_buffers() noexcept override = default;
   bool update() noexcept override {
     using namespace ecs::component;
@@ -128,10 +126,7 @@ public:
     for (auto [entity, device, buffer]: registry.view<gpu_device_component, gpu_vertex_buffer_component>().each()) {
       registry.emplace_or_replace<gpu_transfer_buffer_component>(entity, SDL_CreateGPUTransferBuffer(device.value_ptr, &transfer_buffer_info), buffer_offsets, buffer_sizes);
     }
-    // буфер создает SDL так что тебе не нужно париться об этом сейчас, только потом, когда будешь к нему применять трансфер буфер,
-    // так как в нем может быть больше\меньше данных, то нужно будет подгонять GPU буфер
-    // но на данный момент пофигу, потому что это произойдет 1 раз на этапе инициализации.
-    
+
     SDL_GPUBuffer* buffer{};
 
     return true;
@@ -141,7 +136,7 @@ public:
 
 class vertex_buffer_create_system final : public ecs::system::system {
 public:
-  vertex_buffer_create_system(entt::registry& registry, entt::dispatcher& dispatcher) noexcept : base_system(registry, dispatcher) {}
+  explicit vertex_buffer_create_system(entt::registry& registry) noexcept : base_system(registry) {}
   ~vertex_buffer_create_system() noexcept override = default;
   bool update() noexcept override {
     auto* device = registry.ctx().get<SDL_GPUDevice*>();

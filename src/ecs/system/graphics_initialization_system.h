@@ -8,7 +8,7 @@ namespace ecs::system {
     bool initialized{false};
 
   public:
-    graphics_initialization_system(entt::registry& registry, entt::dispatcher& dispatcher) : system(registry, dispatcher) {}
+    explicit graphics_initialization_system(entt::registry& registry) : system(registry) {}
 
     ~graphics_initialization_system() override = default;
 
