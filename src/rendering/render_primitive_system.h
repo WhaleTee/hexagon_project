@@ -1,6 +1,6 @@
 #pragma once
 #include "../../build/_deps/sdl-src/src/video/SDL_sysvideo.h"
-#include "../ecs/system/base_system.h"
+#include "../ecs/base_system.h"
 #include "component.h"
 #include "entt/core/monostate.hpp"
 
@@ -20,7 +20,7 @@
 
 
 
-struct render_primitive_system final : public ecs::system::system {
+struct render_primitive_system final : ecs::system::base_system {
   explicit render_primitive_system(entt::registry& registry) : base_system(registry) {}
 
   ~render_primitive_system() noexcept override = default;

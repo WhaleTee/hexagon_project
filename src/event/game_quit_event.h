@@ -1,9 +1,6 @@
 #pragma once
-#include "dispatcher_invoker.h"
+#include "game_event.h"
 
 namespace event {
-  struct game_quit_event {
-    static constexpr dispatcher_invoker<game_quit_event> invoker{};
-    game_quit_event() noexcept = default;
-  };
+  struct game_quit_event : game_event<game_quit_event> {};
 } // namespace event

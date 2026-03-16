@@ -1,10 +1,10 @@
+#include "game_world.h"
 #include "../event/game_start_event.h"
 #include "../event/game_world_destroy_event.h"
-#include "game_world.h"
 
 namespace ecs {
   void game_world::run() noexcept {
-    this->dispatcher.trigger<event::game_start_event>();
+    event::game_start_event::invoker(this->dispatcher);
   }
 
   void game_world::update() noexcept {

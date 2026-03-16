@@ -1,12 +1,19 @@
 #pragma once
 #include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_video.h"
-#include "glm/vec4.hpp"
 #include "data.h"
+#include "glm/vec4.hpp"
 
 #include <vector>
 
 namespace rendering::component {
+  enum component_tag : std::uint32_t {
+    // command buffer tags
+
+    copy = 0,
+    render,
+  };
+
   struct window_destroy_request {};
 
   struct window_component {
@@ -20,8 +27,6 @@ namespace rendering::component {
     Uint32 height;
   };
 
-  struct gpu_device_destroy_request {};
-
   struct gpu_device_component {
     SDL_GPUDevice* value;
   };
@@ -32,11 +37,11 @@ namespace rendering::component {
     bool debug_mode;
   };
 
-  struct gpu_copy_command_buffer_component {
-    SDL_GPUCommandBuffer* value;
+  struct opaque_render_pipeline_component {
+    SDL_GPUGraphicsPipeline* value;
   };
 
-  struct gpu_render_command_buffer_component {
+  struct gpu_command_buffer_component {
     SDL_GPUCommandBuffer* value;
   };
 
@@ -44,8 +49,15 @@ namespace rendering::component {
     SDL_GPUCopyPass* value;
   };
 
+  struct gpu_color_target_setting_component {
+    SDL_GPUTexture* swapchainTexture;
+    SDL_FColor clear_color;
+    SDL_GPULoadOp load_op;
+    SDL_GPUStoreOp store_op;
+  };
+
   struct gpu_render_pass_component {
-    SDL_GPUCopyPass* value;
+    SDL_GPURenderPass* value;
   };
 
   struct vertices_component {
@@ -61,7 +73,7 @@ namespace rendering::component {
   };
 
   struct indices_component {
-    std::vector<uint32_t> value;
+    std::vector<std::uint32_t> value;
   };
 
   struct index_buffer_component {
@@ -71,4 +83,4 @@ namespace rendering::component {
   struct index_transfer_buffer_component {
     SDL_GPUTransferBuffer** value;
   };
-}
+} // namespace rendering::component

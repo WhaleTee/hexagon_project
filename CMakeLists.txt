@@ -17,20 +17,17 @@ set(
         src/event/game_start_event.h
         src/event/game_world_destroy_event.h
         src/hexagon.h
-        src/sdl_game_app.h
         src/sdl_app_renderer.h
         src/rendering/render_primitive_system.h
-        src/camera.h
-        src/rendering/copy_command_buffer.h
+        src/rendering/command_buffer.h
         src/rendering/component.h
         src/rendering/data.h
-        src/rendering/render_command_buffer.h
         src/rendering/copy_pass.h
         src/rendering/vertex_buffer.h
-        src/rendering/index_buffer.h
-        src/rendering/gpu_device.h
-        src/rendering/gpu_device.h
-        src/rendering/entity.h
+        src/rendering/render_pass.h
+        src/rendering/opaque_render_pipeline.h
+        src/event/game_event.h
+        src/rendering/opaque_render.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC})

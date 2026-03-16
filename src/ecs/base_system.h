@@ -1,9 +1,7 @@
 #pragma once
-#include "../component.h"
 #include <entt/entity/registry.hpp>
 
 namespace ecs::system {
-
   class base_system {
     bool marked_to_destroy{false};
 
@@ -25,6 +23,4 @@ namespace ecs::system {
       marked_to_destroy = true;
     }
   };
-
-  using system = base_system;
 } // namespace ecs::system

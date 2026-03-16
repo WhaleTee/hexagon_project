@@ -18,13 +18,11 @@ namespace ecs {
 
     void update() noexcept;
 
-    template<typename T, auto Candidate, typename I>
-    void register_event_listener(I& value_or_instance) noexcept {
+    template <typename T, auto Candidate, typename I> void register_event_listener(I& value_or_instance) noexcept {
       this->dispatcher.sink<T>().template connect<Candidate>(value_or_instance);
     }
 
-    template<typename T, auto Candidate>
-    void register_event_listener() noexcept {
+    template <typename T, auto Candidate> void register_event_listener() noexcept {
       this->dispatcher.sink<T>().template connect<Candidate>();
     }
 
