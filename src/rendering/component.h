@@ -2,18 +2,13 @@
 #include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_video.h"
 #include "data.h"
+#include "glm/detail/type_quat.hpp"
+#include "glm/fwd.hpp"
 #include "glm/vec4.hpp"
 
 #include <vector>
 
 namespace rendering::component {
-  enum component_tag : std::uint32_t {
-    // command buffer tags
-
-    copy = 0,
-    render,
-  };
-
   struct window_destroy_request {};
 
   struct window_component {
@@ -37,9 +32,11 @@ namespace rendering::component {
     bool debug_mode;
   };
 
-  struct opaque_render_pipeline_component {
+  struct render_pipeline_component {
     SDL_GPUGraphicsPipeline* value;
   };
+
+  struct render_pipeline_release_request {};
 
   struct gpu_command_buffer_component {
     SDL_GPUCommandBuffer* value;
@@ -64,6 +61,8 @@ namespace rendering::component {
     std::vector<data::vertex> value;
   };
 
+  struct vertex_and_index_buffer_release_request {};
+
   struct vertex_buffer_component {
     SDL_GPUBuffer* value;
   };
@@ -73,7 +72,7 @@ namespace rendering::component {
   };
 
   struct indices_component {
-    std::vector<std::uint32_t> value;
+    std::vector<Uint32> value;
   };
 
   struct index_buffer_component {
@@ -81,6 +80,6 @@ namespace rendering::component {
   };
 
   struct index_transfer_buffer_component {
-    SDL_GPUTransferBuffer** value;
+    SDL_GPUTransferBuffer* value;
   };
 } // namespace rendering::component

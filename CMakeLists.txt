@@ -4,33 +4,13 @@ project(hexagon-field VERSION 0.0.1 LANGUAGES CXX)
 
 set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets)
 set(ASSETS_OUTPUT_DIR $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)
-set(
-        SRC
-        src/hexmap.h
-        src/exception/sdl_exception.h
-        src/sdl_engine.cpp
-        src/sdl_engine.h
-        src/event/game_quit_event.h
-        src/event/dispatcher_invoker.h
-        src/timer/sdl_timer.h
-        src/timer/sdl_timer.cpp
-        src/event/game_start_event.h
-        src/event/game_world_destroy_event.h
-        src/hexagon.h
-        src/sdl_app_renderer.h
-        src/rendering/render_primitive_system.h
-        src/rendering/command_buffer.h
-        src/rendering/component.h
-        src/rendering/data.h
-        src/rendering/copy_pass.h
-        src/rendering/vertex_buffer.h
-        src/rendering/render_pass.h
-        src/rendering/opaque_render_pipeline.h
-        src/event/game_event.h
-        src/rendering/opaque_render.h
-)
 
-add_executable(${PROJECT_NAME} ${SRC})
+file(GLOB_RECURSE CPP_SOURCES src/*.cpp)
+
+file(GLOB_RECURSE HEADER_FILES src/*.h)
+
+# Create the library target
+add_executable(${PROJECT_NAME} ${CPP_SOURCES} ${HEADER_FILES})
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 

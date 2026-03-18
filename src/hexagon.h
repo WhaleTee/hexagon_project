@@ -1,11 +1,7 @@
 #pragma once
-#include "glm/detail/func_exponential.inl"
 #include "glm/gtc/constants.hpp"
-#include "glm/trigonometric.hpp"
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
-
-#include <array>
 #include <cmath>
 #include <stdexcept>
 
@@ -51,22 +47,29 @@ struct hexagon {
   bool is_flat_top{true};
 
   explicit hexagon(const bool flat_top, const int q, const int r, const float size, const float height) :
-      is_flat_top{flat_top}, coordinates{q, r}, size{size}, height{height} {}
-
+      coordinates{q, r}, size{size}, height{height}, is_flat_top{flat_top} {}
 
   [[nodiscard]] glm::vec3 get_point(const int i) const {
-    if (i < 0 || i > 11) throw std::out_of_range("in 3D space hexagon has 12 vertices, it's indexes could not be less than 0 and more than 11.");
+    if (i < 0 || i > 5) throw std::out_of_range("hexagon has 6 vertices, it's indexes could not be less than 0 and more than 5.");
     const float degree = 60.f * static_cast<float>(i) - (is_flat_top ? 0 : 30.f);
     const float radians = glm::pi<float>() / 108 * degree;
-    return {size * glm::cos(degree), size * glm::sin(radians), i < 6 ? 0 : height};
+    return {size * glm::cos(degree), size * glm::sin(radians), 0};
   }
 
-  [[nodiscard]] std::array<glm::vec3, 12> get_vertices() const {
-    std::array<glm::vec3, 12> vertices{};
-    for (int i = 0; i < 12; i++) {
+  [[nodiscard]] std::vector<glm::vec3> get_vertices() const {
+    std::vector<glm::vec3> vertices{6};
+    for (int i = 0; i < 6; i++) {
       vertices[i] = get_point(i);
     }
     return vertices;
+  }
+
+  [[nodiscard]] constexpr static std::vector<std::uint32_t> get_draw_line_indices() {
+    return {0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 0};
+  }
+
+  [[nodiscard]] constexpr static std::vector<std::uint32_t> get_draw_line_strip_indices() {
+    return {0, 1, 2, 3, 4, 5, 0};
   }
 
   [[nodiscard]] glm::vec3 get_world_position() const {
@@ -74,5 +77,13 @@ struct hexagon {
     const auto rf = static_cast<float>(coordinates.r);
     if (is_flat_top) return {3.f / 2 * qf * size, (sqrtf(3) / 2 * qf + sqrtf(3) * rf) * size, 0};
     return {(sqrtf(3) * qf + sqrtf(3) / 2 * rf) * size, 3.f / 2 * rf * size, height / 2};
+  }
+
+  bool operator==(const hexagon& other) const {
+    return other.coordinates.q == this->coordinates.q && other.coordinates.r == this->coordinates.r && other.coordinates.s == this->coordinates.s;
+  }
+
+  bool operator<(const hexagon& other) const {
+    return other.coordinates.q + other.coordinates.r < this->coordinates.q + this->coordinates.r;
   }
 };

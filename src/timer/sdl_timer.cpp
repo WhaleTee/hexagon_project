@@ -62,7 +62,7 @@ namespace timer {
     Uint64 delay{0};
     if (rate > 0) {
       const Uint64 rate_ms = get_fixed_ticks();
-      if (const Uint64 delta = get_ticks(); delta < rate_ms) { delay = rate_ms - delta; }
+      if (const Uint64 delta = get_ticks(); delta < rate_ms) delay = rate_ms - delta;
     }
     return delay;
   }

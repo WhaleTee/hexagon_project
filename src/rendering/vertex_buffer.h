@@ -13,25 +13,24 @@ namespace rendering::system {
       using namespace component;
       using namespace data;
 
-      const auto vertex_view =
-          registry.view<const vertices_component, const indices_component>(entt::exclude<vertex_buffer_component, vertex_transfer_buffer_component>);
+      const auto& vertex_view = registry.view<vertices_component, indices_component>(entt::exclude<vertex_buffer_component, vertex_transfer_buffer_component>);
 
-      if (!registry.valid(vertex_view.front())) { return true; }
+      if (!registry.valid(vertex_view.front())) return true;
 
-      const auto gpu_device_view = registry.view<gpu_device_component>();
-      const auto gpu_device_entity = gpu_device_view.front();
+      const auto& gpu_device_view = registry.view<gpu_device_component>();
+      const auto& gpu_device_entity = gpu_device_view.front();
 
       if (!registry.valid(gpu_device_entity)) {
-        SDL_Log("Cannot initialize vertex buffers. GPU device not found.");
+        SDL_Log("Cannot initialize vertex and index buffers. GPU device not found.");
         return false;
       }
 
       auto* gpu_device = gpu_device_view.get<gpu_device_component>(gpu_device_entity).value;
-      const auto copy_pass_view = registry.view<gpu_copy_pass_component>();
-      const auto copy_pass_entity = copy_pass_view.front();
+      const auto& copy_pass_view = registry.view<gpu_copy_pass_component>();
+      const auto& copy_pass_entity = copy_pass_view.front();
 
       if (!registry.valid(copy_pass_entity)) {
-        SDL_Log("Cannot initialize vertex buffers. Copy pass was not began.");
+        SDL_Log("Cannot initialize vertex and index buffers. Copy pass was not began.");
         return false;
       }
 
@@ -56,7 +55,7 @@ namespace rendering::system {
     }
 
     static void create_vertex_buffer(
-        SDL_GPUDevice* gpu_device, SDL_GPUCopyPass* copy_pass, SDL_GPUBuffer* vertex_buffer, SDL_GPUTransferBuffer* vertex_transfer_buffer,
+        SDL_GPUDevice* gpu_device, SDL_GPUCopyPass* copy_pass, SDL_GPUBuffer*& vertex_buffer, SDL_GPUTransferBuffer*& transfer_buffer,
         const std::vector<data::vertex>& vertices) noexcept {
       using namespace data;
 
@@ -69,38 +68,79 @@ namespace rendering::system {
       transfer_info.size = buffer_info.size;
 
       vertex_buffer = SDL_CreateGPUBuffer(gpu_device, &buffer_info);
-      vertex_transfer_buffer = SDL_CreateGPUTransferBuffer(gpu_device, &transfer_info);
-      auto* vertex_map = static_cast<vertex*>(SDL_MapGPUTransferBuffer(gpu_device, vertex_transfer_buffer, false));
+      transfer_buffer = SDL_CreateGPUTransferBuffer(gpu_device, &transfer_info);
+      auto* vertex_map = static_cast<vertex*>(SDL_MapGPUTransferBuffer(gpu_device, transfer_buffer, false));
 
       SDL_memcpy(vertex_map, vertices.data(), buffer_info.size);
-      SDL_UnmapGPUTransferBuffer(gpu_device, vertex_transfer_buffer);
+      SDL_UnmapGPUTransferBuffer(gpu_device, transfer_buffer);
 
-      SDL_GPUTransferBufferLocation buffer_location{vertex_transfer_buffer, 0};
+      SDL_GPUTransferBufferLocation buffer_location{transfer_buffer, 0};
       SDL_GPUBufferRegion buffer_region{vertex_buffer, 0, buffer_info.size};
       SDL_UploadToGPUBuffer(copy_pass, &buffer_location, &buffer_region, true);
     }
 
     static void create_index_buffer(
-        SDL_GPUDevice* gpu_device, SDL_GPUCopyPass* copy_pass, SDL_GPUBuffer* index_buffer, SDL_GPUTransferBuffer* index_transfer_buffer,
+        SDL_GPUDevice* gpu_device, SDL_GPUCopyPass* copy_pass, SDL_GPUBuffer*& index_buffer, SDL_GPUTransferBuffer*& transfer_buffer,
         const std::vector<std::uint32_t>& indices) noexcept {
-      SDL_GPUBufferCreateInfo indices_buffer_info{};
-      indices_buffer_info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
-      indices_buffer_info.size = indices.size() * sizeof(std::uint32_t);
+      SDL_GPUBufferCreateInfo buffer_info{};
+      buffer_info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
+      buffer_info.size = indices.size() * sizeof(std::uint32_t);
 
-      SDL_GPUTransferBufferCreateInfo indices_transfer_info{};
-      indices_transfer_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-      indices_transfer_info.size = indices_buffer_info.size;
+      SDL_GPUTransferBufferCreateInfo transfer_info{};
+      transfer_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+      transfer_info.size = buffer_info.size;
 
-      index_buffer = SDL_CreateGPUBuffer(gpu_device, &indices_buffer_info);
-      index_transfer_buffer = SDL_CreateGPUTransferBuffer(gpu_device, &indices_transfer_info);
-      auto* index_map = static_cast<std::uint32_t*>(SDL_MapGPUTransferBuffer(gpu_device, index_transfer_buffer, false));
+      index_buffer = SDL_CreateGPUBuffer(gpu_device, &buffer_info);
+      transfer_buffer = SDL_CreateGPUTransferBuffer(gpu_device, &transfer_info);
+      auto* index_map = static_cast<std::uint32_t*>(SDL_MapGPUTransferBuffer(gpu_device, transfer_buffer, false));
 
-      SDL_memcpy(index_map, indices.data(), indices_buffer_info.size);
-      SDL_UnmapGPUTransferBuffer(gpu_device, index_transfer_buffer);
+      SDL_memcpy(index_map, indices.data(), buffer_info.size);
+      SDL_UnmapGPUTransferBuffer(gpu_device, transfer_buffer);
 
-      SDL_GPUTransferBufferLocation indices_location{index_transfer_buffer, 0};
-      SDL_GPUBufferRegion indices_region{index_buffer, 0, indices_buffer_info.size};
+      SDL_GPUTransferBufferLocation indices_location{transfer_buffer, 0};
+      SDL_GPUBufferRegion indices_region{index_buffer, 0, buffer_info.size};
       SDL_UploadToGPUBuffer(copy_pass, &indices_location, &indices_region, true);
+    }
+  };
+
+  struct release_vertex_and_index_buffer final : ecs::system::base_system {
+    explicit release_vertex_and_index_buffer(entt::registry& registry) : base_system(registry) {}
+
+    ~release_vertex_and_index_buffer() noexcept override = default;
+
+    bool update() noexcept override {
+      using namespace component;
+      using namespace data;
+
+      const auto& vertex_view = registry.view<
+          vertex_buffer_component, vertex_transfer_buffer_component, index_buffer_component, index_transfer_buffer_component,
+          vertex_and_index_buffer_release_request>();
+
+      if (!registry.valid(vertex_view.front())) return true;
+      mark_to_destroy();
+
+      const auto& gpu_device_view = registry.view<gpu_device_component>();
+      const auto& gpu_device_entity = gpu_device_view.front();
+
+      if (!registry.valid(gpu_device_entity)) {
+        SDL_Log("Cannot destroy vertex and index buffers. GPU device has been destroyed.");
+        return false;
+      }
+
+      auto* gpu_device = gpu_device_view.get<gpu_device_component>(gpu_device_entity).value;
+
+      for (auto&& [entity, vertex_buffer, vertex_transfer_buffer, index_buffer, index_transfer_buffer]: vertex_view.each()) {
+        SDL_ReleaseGPUBuffer(gpu_device, vertex_buffer.value);
+        SDL_ReleaseGPUBuffer(gpu_device, index_buffer.value);
+        SDL_ReleaseGPUTransferBuffer(gpu_device, vertex_transfer_buffer.value);
+        SDL_ReleaseGPUTransferBuffer(gpu_device, index_transfer_buffer.value);
+
+        registry.remove<
+            vertex_buffer_component, vertex_transfer_buffer_component, index_buffer_component, index_transfer_buffer_component,
+            vertex_and_index_buffer_release_request>(entity);
+      }
+
+      return true;
     }
   };
 } // namespace rendering::system
