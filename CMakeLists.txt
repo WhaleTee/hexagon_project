@@ -10,7 +10,8 @@ file(GLOB_RECURSE CPP_SOURCES src/*.cpp)
 file(GLOB_RECURSE HEADER_FILES src/*.h)
 
 # Create the library target
-add_executable(${PROJECT_NAME} ${CPP_SOURCES} ${HEADER_FILES})
+add_executable(${PROJECT_NAME} ${CPP_SOURCES} ${HEADER_FILES}
+        src/camera/normalize_camera_up.h)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 

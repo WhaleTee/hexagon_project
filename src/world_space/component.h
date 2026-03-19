@@ -12,7 +12,7 @@ namespace space::component {
   };
 
   struct orientation_component {
-    glm::quat value;
+    glm::mat4 value;
   };
 
   struct rotation_request {

@@ -18,10 +18,10 @@ namespace space::system {
       auto view = registry.view<orientation_component, rotation_request>();
 
       for (auto [entity, orientation, request]: view.each()) {
-        auto rotation = glm::angleAxis(request.x, glm::vec3(1.0f, 0.0f, 0.0f));
-        rotation *= glm::angleAxis(request.y, glm::vec3(0.0f, 1.0f, 0.0f));
-        rotation *= glm::angleAxis(request.z, glm::vec3(0.0f, 0.0f, 1.0f));
-        orientation.value = glm::normalize(orientation.value * rotation);
+        auto rotation = glm::quat(glm::vec3{request.x, request.y, 0});
+
+        // orientation.value = glm::normalize(rotation * orientation.value);
+
         registry.remove<rotation_request>(entity);
       }
 

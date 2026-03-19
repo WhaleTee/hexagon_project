@@ -1,5 +1,6 @@
 #include "sdl_engine.h"
 #include "camera/camera.h"
+#include "camera/normalize_camera_up.h"
 #include "ecs/game_world.h"
 #include "event/game_quit_event.h"
 #include "event/game_world_destroy_event.h"
@@ -32,7 +33,7 @@ namespace {
       // create entities
       const auto window_entity = registry.create();
       const auto camera_entity = registry.create();
-      hexmap::hexmap hexmap{5, 50, 1, true};
+      hexmap::hexmap hexmap{1, 100.f, 1, true};
       glm::vec3 position{1280.f / 2, 720.f / 2, 0};
       hexmap.set_position(position);
       for (const auto hex: hexmap.get_hexes()) {
@@ -63,14 +64,6 @@ namespace {
       window_settings.width = 1280;
 
       // config camera
-      registry.emplace<position_component>(camera_entity, position);
-      registry.emplace<orientation_component>(camera_entity);
-      registry.emplace<view_matrix_component>(camera_entity);
-      registry.emplace<projection_component>(camera_entity);
-      registry.emplace<entt::tag<component_tag::orthographic>>(camera_entity);
-
-      // auto camera_rotation = registry.emplace<rotation_request>(camera_entity);
-      // camera_rotation.x = 45;
 
       auto camera_setting = registry.emplace<camera_setting_component>(camera_entity);
       camera_setting.width = window_settings.width;
@@ -78,6 +71,30 @@ namespace {
       camera_setting.near = 0.1f;
       camera_setting.far = 100.f;
 
+      auto camera_position = glm::vec3{0.f, 0.f, -1.f};
+      const auto width = static_cast<float>(window_settings.width);
+      const auto height = static_cast<float>(window_settings.height);
+      registry.emplace<position_component>(camera_entity, camera_position);
+      const auto camera_orientation = registry.emplace<orientation_component>(camera_entity, glm::lookAtLH(camera_position, glm::vec3{0.f, 0.f, 0.f}, glm::vec3{0.f, 1.f, 0.f})).value;
+      registry.emplace<view_matrix_component>(camera_entity);
+      const auto& camera_projection = registry.emplace<projection_component>(camera_entity, glm::ortho(-width/2, width/2, -height/2, height/2, camera_setting.near, camera_setting.far));
+
+      std::cout << "-------- orientation start --------" << std::endl;
+      std::cout << '[' << camera_orientation[0][0] << ", " << camera_orientation[0][1] << ", " << camera_orientation[0][2]<< ", " << camera_orientation[0][3] << ']' << std::endl;
+      std::cout << '[' << camera_orientation[1][0] << ", " << camera_orientation[1][1] << ", " << camera_orientation[1][2]<< ", " << camera_orientation[1][3] << ']' << std::endl;
+      std::cout << '[' << camera_orientation[2][0] << ", " << camera_orientation[2][1] << ", " << camera_orientation[2][2]<< ", " << camera_orientation[2][3] << ']' << std::endl;
+      std::cout << '[' << camera_orientation[3][0] << ", " << camera_orientation[3][1] << ", " << camera_orientation[3][2]<< ", " << camera_orientation[3][3] << ']' << std::endl;
+      std::cout << "-------- orientation end --------" << std::endl;
+      std::cout << "-------- matrix start --------" << std::endl;
+      std::cout << '[' << camera_projection.value[0][0] << ", " << camera_projection.value[0][1] << ", " << camera_projection.value[0][2]<< ", " << camera_projection.value[0][3] << ']' << std::endl;
+      std::cout << '[' << camera_projection.value[1][0] << ", " << camera_projection.value[1][1] << ", " << camera_projection.value[1][2]<< ", " << camera_projection.value[1][3] << ']' << std::endl;
+      std::cout << '[' << camera_projection.value[2][0] << ", " << camera_projection.value[2][1] << ", " << camera_projection.value[2][2]<< ", " << camera_projection.value[2][3] << ']' << std::endl;
+      std::cout << '[' << camera_projection.value[3][0] << ", " << camera_projection.value[3][1] << ", " << camera_projection.value[3][2]<< ", " << camera_projection.value[3][3] << ']' << std::endl;
+      std::cout << "-------- matrix end --------" << std::endl;
+      registry.emplace<entt::tag<component_tag::orthographic>>(camera_entity);
+
+      // auto camera_rotation = registry.emplace<rotation_request>(camera_entity);
+      // camera_rotation.x = 45;
 
       // init systems
       system_manager.create_system<create_window>();
@@ -94,7 +111,8 @@ namespace {
       // camera rotation systems
       system_manager.create_system<rotation_system>();
       system_manager.create_system<view_matrix_system>();
-      system_manager.create_system<camera_orthographic_projection_system>();
+      // system_manager.create_system<normalize_camera_up_system>();
+      // system_manager.create_system<camera_orthographic_projection_system>();
 
       // rendering systems
       system_manager.create_system<initialize_command_buffer<component_tag::render>>();

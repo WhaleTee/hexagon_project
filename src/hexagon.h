@@ -52,8 +52,8 @@ struct hexagon {
   [[nodiscard]] glm::vec3 get_point(const int i) const {
     if (i < 0 || i > 5) throw std::out_of_range("hexagon has 6 vertices, it's indexes could not be less than 0 and more than 5.");
     const float degree = 60.f * static_cast<float>(i) - (is_flat_top ? 0 : 30.f);
-    const float radians = glm::pi<float>() / 108 * degree;
-    return {size * glm::cos(degree), size * glm::sin(radians), 0};
+    const float radians = glm::pi<float>() / 180.f * degree;
+    return {size * glm::cos(radians), size * glm::sin(radians), 0};
   }
 
   [[nodiscard]] std::vector<glm::vec3> get_vertices() const {

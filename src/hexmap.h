@@ -15,9 +15,9 @@ namespace hexmap {
   public:
     hexmap(const std::size_t size, const float hex_size, const float hex_height, const bool flat_top) :
         map_size(size), hex_size(hex_size), hex_height(hex_height), is_flat_top(flat_top) {
-      for (int i = -3; i < 4; i++) {
-        for (int j = -3; j < 4; j++) {
-          hexes.emplace(true, i, j, 50, 1);
+      for (auto i = map_size-1; i < map_size; i++) {
+        for (auto j = map_size-1; j < map_size; j++) {
+          hexes.emplace(true, i, j, hex_size, hex_height);
         }
       }
     }
@@ -29,7 +29,8 @@ namespace hexmap {
     [[nodiscard]] std::vector<glm::vec3> get_hexagon_vertices_world_position(const hexagon& hex) const {
       std::vector<glm::vec3> vertices = hex.get_vertices();
       for (auto& vertex : vertices) {
-        vertex += get_hexagon_world_position(hex);
+        // vertex += get_hexagon_world_position(hex);
+        vertex += hex.get_world_position();
       }
       return vertices;
     }

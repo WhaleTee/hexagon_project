@@ -18,9 +18,9 @@ namespace camera::system {
       auto view = registry.view<projection_component, camera_setting_component, entt::tag<component_tag::orthographic>>();
 
       for (auto [entity, projection, settings]: view.each()) {
-        const float half_width = static_cast<float>(settings.width) / 2.f;
-        const float half_height = static_cast<float>(settings.height) / 2.f;
-        projection.value = glm::ortho(-half_width, half_width, -half_height, half_height, settings.near, settings.far);
+        const auto width = static_cast<float>(settings.width);
+        const auto height = static_cast<float>(settings.height);
+        projection.value = glm::ortho(0.f, width, 0.f, height, settings.near, settings.far);
       }
 
       return true;
