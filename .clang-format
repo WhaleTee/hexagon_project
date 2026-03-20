@@ -16,8 +16,8 @@ AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLambdasOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: false
-#BreakAfterReturnType: Automatic
-#BreakTemplateDeclarations: Yes
+BreakAfterReturnType: Automatic
+BreakTemplateDeclarations: Yes
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
 Cpp11BracedListStyle: true

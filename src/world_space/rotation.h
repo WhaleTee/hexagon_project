@@ -20,7 +20,7 @@ namespace space::system {
       for (auto [entity, orientation, request]: view.each()) {
         auto rotation = glm::quat(glm::vec3{request.x, request.y, 0});
 
-        // orientation.value = glm::normalize(rotation * orientation.value);
+        orientation.value = glm::normalize(rotation * orientation.value);
 
         registry.remove<rotation_request>(entity);
       }

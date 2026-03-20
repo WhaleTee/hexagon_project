@@ -4,7 +4,6 @@
 #include "../world_space/component.h"
 #include "SDL3/SDL_log.h"
 #include "component.h"
-
 #include <entt/entity/registry.hpp>
 #include <iostream>
 
@@ -53,18 +52,11 @@ namespace rendering::system {
         const auto& camera_view_matrix = registry.get<view_matrix_component>(camera_entity).value;
         const auto& camera_projection = registry.get<projection_component>(camera_entity).value;
         const auto& model_view = registry.view<vertices_component, vertex_buffer_component, indices_component, index_buffer_component>();
-        const auto& view = glm::translate(glm::mat4{1.0f}, glm::vec3{0.f, 0.f, -1.f});
-        const data::uniform::vertex_uniform vertex_uniform{glm::mat4{1.f}, view, camera_projection};
-        const auto mvp = camera_projection * camera_view_matrix * glm::mat4{1.f};
-        SDL_PushGPUVertexUniformData(render_cmd_buffer, 0, &mvp, sizeof(mvp));
+        const data::uniform::vertex_uniform vertex_uniform{glm::mat4{1.f}, camera_view_matrix, camera_projection};
+
+        SDL_PushGPUVertexUniformData(render_cmd_buffer, 0, &vertex_uniform, sizeof(vertex_uniform));
 
         for (auto&& [entity, vertices, vertex_buffer, indices, index_buffer]: model_view.each()) {
-          std::cout << "----------- hex position ------------" << std::endl;
-          for (auto&& value : vertices.value) {
-            // auto mvpValue = glm::translate(mvp, value.position);
-            std::cout << '[' << value.position.x << ", " << value.position.y << ", " << value.position.z << ']' << std::endl;
-            // std::cout << mvpValue[3][0] << mvpValue[3][1] << mvpValue[3][2] << std::endl;
-          }
           SDL_GPUBufferBinding vertex_binding{vertex_buffer.value, 0};
           SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_binding, 1);
 
