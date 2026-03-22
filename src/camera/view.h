@@ -1,11 +1,10 @@
 #pragma once
-#include "../camera/component.h"
 #include "../ecs/base_system.h"
 #include "../rendering/render.h"
 #include "glm/gtc/quaternion.hpp"
 #include <entt/entity/registry.hpp>
 
-namespace space::system {
+namespace transform::system {
   struct view_matrix_system final : ecs::system::base_system {
     explicit view_matrix_system(entt::registry& registry) : base_system(registry) {}
 
@@ -15,13 +14,11 @@ namespace space::system {
       using namespace component;
       using namespace camera::component;
 
-      const auto& view = registry.view<orientation_component, position_component, view_matrix_component>();
+      for (auto&& [entity, rotation, position, view_matrix]: registry.view<rotation_component, position_component, view_matrix_component>().each()) {
+        const auto rotation_matrix = glm::mat4_cast(rotation.value);
+        const auto position_matrix = glm::translate(glm::mat4{1}, -position.value);
 
-      for (auto&& [entity, orientation, position, view_matrix]: view.each()) {
-        auto rotation_matrix = glm::mat4_cast(orientation.value);
-        auto translation_matrix = glm::translate(glm::mat4(1.f), -position.value);
-
-        view_matrix.value = rotation_matrix * translation_matrix;
+        view_matrix.value = rotation_matrix * position_matrix;
       }
 
       return true;

@@ -1,9 +1,10 @@
 #pragma once
 #include "../camera/component.h"
 #include "../ecs/base_system.h"
-#include "../world_space/component.h"
+#include "../transform/component.h"
 #include "SDL3/SDL_log.h"
 #include "component.h"
+
 #include <entt/entity/registry.hpp>
 #include <iostream>
 
@@ -16,7 +17,7 @@ namespace rendering::system {
     bool update() noexcept override {
       using namespace component;
       using namespace camera::component;
-      using namespace space::component;
+      using namespace transform::component;
 
       const auto render_pipeline_view = registry.view<render_pipeline_component>();
       const auto render_pipeline_entity = render_pipeline_view.front();
@@ -44,7 +45,7 @@ namespace rendering::system {
 
         SDL_BindGPUGraphicsPipeline(render_pass, render_pipeline);
 
-        const auto& camera_view = registry.view<view_matrix_component, projection_component>();
+        const auto& camera_view = registry.view<model_matrix_component, view_matrix_component, projection_component>();
         const auto& camera_entity = camera_view.front();
 
         if (!registry.valid(camera_entity)) return true;
@@ -52,9 +53,16 @@ namespace rendering::system {
         const auto& camera_view_matrix = registry.get<view_matrix_component>(camera_entity).value;
         const auto& camera_projection = registry.get<projection_component>(camera_entity).value;
         const auto& model_view = registry.view<vertices_component, vertex_buffer_component, indices_component, index_buffer_component>();
-        const data::uniform::vertex_uniform vertex_uniform{glm::mat4{1.f}, camera_view_matrix, camera_projection};
 
-        SDL_PushGPUVertexUniformData(render_cmd_buffer, 0, &vertex_uniform, sizeof(vertex_uniform));
+        auto model = glm::mat4{1};
+        // rotation_matrix = glm::rotate(rotation_matrix, 45.f, glm::vec3{1.f,0.f,0.f});
+        // model = glm::rotate(model, 45.f, glm::vec3{1.f,0.f,0.f});
+        // model = glm::rotate(model, 45.f, glm::vec3{0.f,1.f,0.f});
+
+        // const data::uniform::vertex_uniform vertex_uniform{model, camera_view_matrix, camera_projection};
+        const auto mvp = camera_projection * camera_view_matrix * model;
+
+        SDL_PushGPUVertexUniformData(render_cmd_buffer, 0, &mvp, sizeof(mvp));
 
         for (auto&& [entity, vertices, vertex_buffer, indices, index_buffer]: model_view.each()) {
           SDL_GPUBufferBinding vertex_binding{vertex_buffer.value, 0};

@@ -1,8 +1,8 @@
 #pragma once
 #include "../component_tag.h"
 #include "../ecs/base_system.h"
-#include "../world_space/rotation.h"
 #include "component.h"
+#include "../transform/component.h"
 #include "glm/gtc/quaternion.hpp"
 #include <entt/entity/registry.hpp>
 
@@ -18,11 +18,10 @@ namespace camera::system {
       auto view = registry.view<projection_component, camera_setting_component, entt::tag<component_tag::orthographic>>();
 
       for (auto [entity, projection, settings]: view.each()) {
-
-      mark_to_destroy();
+        mark_to_destroy();
         const auto width = static_cast<float>(settings.width);
         const auto height = static_cast<float>(settings.height);
-        projection.value = glm::orthoLH(-width/2, width/2, -height/2, height/2, settings.near, settings.far);
+        projection.value = glm::ortho(-width / 2, width / 2, -height / 2, height / 2, settings.near, settings.far);
       }
 
       return true;
@@ -36,7 +35,7 @@ namespace camera::system {
 
     bool update() noexcept override {
       using namespace component;
-      using namespace space::component;
+      using namespace transform::component;
 
       mark_to_destroy();
 

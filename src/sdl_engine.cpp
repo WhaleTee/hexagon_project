@@ -1,7 +1,7 @@
 #define SDL_MAIN_USE_CALLBACKS
-#include <SDL3/SDL_main.h>
-#include "camera/camera.h"
 #include "camera/normalize_camera_up.h"
+#include "camera/projection.h"
+#include "camera/view.h"
 #include "ecs/game_world.h"
 #include "event/game_quit_event.h"
 #include "event/game_world_destroy_event.h"
@@ -14,16 +14,15 @@
 #include "rendering/render_pipeline.h"
 #include "rendering/vertex_buffer.h"
 #include "rendering/window.h"
-#include "world_space/rotation.h"
-#include "world_space/view.h"
-#include <iostream>
+#include "transform/model.h"
+#include <SDL3/SDL_main.h>
 #include <numeric>
 
 namespace {
   using namespace rendering::component;
   using namespace rendering::system;
-  using namespace space::system;
-  using namespace space::component;
+  using namespace transform::system;
+  using namespace transform::component;
   using namespace camera::system;
   using namespace camera::component;
 
@@ -34,9 +33,7 @@ namespace {
       const auto window_entity = registry.create();
       const auto camera_entity = registry.create();
 
-      hex::hexmap hexmap{3, 100.f, 1, true};
-      constexpr glm::vec3 position{1280.f / 2, 720.f / 2, 0};
-      hexmap.set_position(position);
+      hex::hexmap hexmap{3, 70.f, 1, true};
       for (const auto hex: hexmap.get_hexes()) {
         const auto hexagon_entity = registry.create();
         std::vector<rendering::data::vertex> vertices{6};
@@ -46,7 +43,6 @@ namespace {
         }
         registry.emplace<vertices_component>(hexagon_entity, std::move(vertices));
         registry.emplace<indices_component>(hexagon_entity, std::move(hex::hexagon::get_draw_line_strip_indices()));
-        registry.emplace<position_component>(hexagon_entity, hexmap.get_hexagon_world_position(hex));
       }
 
       // config gpu device
@@ -72,7 +68,7 @@ namespace {
       camera_setting.near = 0.1f;
       camera_setting.far = 100.f;
 
-      // auto camera_position = glm::vec3{0.f, 0.f, -1.f};
+      auto camera_position = glm::vec3{0, 0, -1};
       // glm::quat pitch = glm::angleAxis(glm::radians(45.f), glm::vec3(1, 0, 0));
       // glm::quat yaw = glm::angleAxis(glm::radians(45.f), glm::vec3(0, 1, 0));
       // registry.emplace<position_component>(camera_entity, camera_position);
@@ -86,15 +82,16 @@ namespace {
       // std::cout << '[' << mat[3][0] << ", " << mat[3][1] << ", " << mat[3][2]<< ", " << mat[3][3] << ']' << std::endl;
       // std::cout << "-------- matrix end --------" << std::endl;
 
-      registry.emplace<orientation_component>(camera_entity, glm::mat4{1});
-      registry.emplace<view_matrix_component>(camera_entity, glm::mat4{1});
+      registry.emplace<position_component>(camera_entity, camera_position);
+      registry.emplace<rotation_component>(camera_entity, glm::lookAt(camera_position, glm::vec3{0}, glm::vec3{0, 1, 0}));
+      registry.emplace<scale_component>(camera_entity, glm::vec3{1});
+      registry.emplace<view_matrix_component>(camera_entity);
+
+      registry.emplace<model_matrix_component>(camera_entity, glm::mat4{1});
       registry.emplace<projection_component>(camera_entity);
       registry.emplace<entt::tag<component_tag::orthographic>>(camera_entity);
 
-      // auto& camera_rotation = registry.emplace<rotation_request>(camera_entity);
-      // camera_rotation.x = 45;
-      // camera_rotation.y = 25;
-      // camera_rotation.z = -35;
+      registry.emplace<rotation_request>(camera_entity, glm::vec3{45, 0, 45});
 
       // init systems
       system_manager.create_system<create_window>();
@@ -109,7 +106,7 @@ namespace {
       system_manager.create_system<submit_command_buffer<component_tag::copy>>();
 
       // camera systems
-      system_manager.create_system<rotation_system>();
+      system_manager.create_system<model_matrix_system>();
       system_manager.create_system<view_matrix_system>();
       // system_manager.create_system<normalize_camera_up_system>();
       system_manager.create_system<camera_orthographic_projection_system>();
