@@ -1,6 +1,7 @@
 #pragma once
 #include "hexagon.h"
 #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 #include <unordered_set>
 
 namespace hex {

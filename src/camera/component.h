@@ -10,6 +10,8 @@ namespace camera::component {
     float far;
   };
 
+  struct set_projection_request {};
+
   struct projection_component {
     glm::mat4 value;
   };

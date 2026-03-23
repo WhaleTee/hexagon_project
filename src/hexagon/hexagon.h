@@ -1,33 +1,41 @@
 #pragma once
 #include "hex_cube_coords.h"
-#include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
-#include <cmath>
 
 namespace hex {
-  static hex_cube_coords zero_hex_cube_coords{};
+  static constexpr int vertex_count{6};
 
-  struct hexagon {
+  class hexagon {
     hex_cube_coords coordinates;
     float size{1};
     float height{1};
-    bool is_flat_top{true};
-
-    explicit hexagon(const bool& flat_top, const hex_cube_coords& cords, const float& size, const float& height);
+    bool flat_top{true};
 
     [[nodiscard]] glm::vec3 get_point(int i) const;
 
+  public:
+
+    explicit hexagon(const bool& flat_top, const hex_cube_coords& cords, const float& size, const float& height) noexcept;
+
     [[nodiscard]] std::vector<glm::vec3> get_vertices() const noexcept;
 
-    [[nodiscard]] constexpr static std::vector<std::uint32_t> get_draw_line_indices() {
+    [[nodiscard]] constexpr static std::vector<std::uint32_t> get_draw_line_indices() noexcept {
       return {0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 0};
     }
 
-    [[nodiscard]] constexpr static std::vector<std::uint32_t> get_draw_line_strip_indices() {
+    [[nodiscard]] constexpr static std::vector<std::uint32_t> get_draw_line_strip_indices() noexcept {
       return {0, 1, 2, 3, 4, 5, 0};
     }
 
     [[nodiscard]] glm::vec3 get_local_position() const noexcept;
+
+    [[nodiscard]] hex_cube_coords get_coords() const noexcept;
+
+    [[nodiscard]] float get_size() const noexcept;
+
+    [[nodiscard]] float get_height() const noexcept;
+
+    [[nodiscard]] bool is_flat_top() const noexcept;
 
     bool operator==(const hexagon& other) const {
       return get_local_position() == other.get_local_position();

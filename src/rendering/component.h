@@ -2,11 +2,8 @@
 #include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_video.h"
 #include "data.h"
-#include "glm/detail/type_quat.hpp"
-#include "glm/fwd.hpp"
-#include "glm/vec4.hpp"
-
 #include <vector>
+#include "entt/entity/entity.hpp"
 
 namespace rendering::component {
   struct window_destroy_request {};
@@ -81,5 +78,9 @@ namespace rendering::component {
 
   struct index_transfer_buffer_component {
     SDL_GPUTransferBuffer* value;
+  };
+
+  struct render_model_component {
+    std::vector<entt::entity> children;
   };
 } // namespace rendering::component

@@ -1,14 +1,11 @@
 #pragma once
-#include <cstdint>
 
 enum component_tag : std::uint32_t {
-  // command buffer tags
+  copy_cmd_buffer = 0,
+  render_cmd_buffer,
 
-  copy = 0,
-  render,
+  camera_entity,
 
-  // projection tag
-
-  orthographic,
-  perspective,
+  orthographic_projection,
+  perspective_projection,
 };

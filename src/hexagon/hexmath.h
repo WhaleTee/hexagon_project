@@ -5,8 +5,10 @@
 #include <numeric>
 #include <ranges>
 #include <unordered_set>
+#include <cmath>
 
 namespace hex::hexmath {
+  static constexpr int hexes_per_n{6};
   enum hex_cube_direction : std::size_t { R = 0, QR, Q, SQ, S, RS };
 
   inline const std::vector<hex_cube_coords> direction_vectors{
@@ -14,7 +16,7 @@ namespace hex::hexmath {
   };
 
   inline std::size_t get_hexmap_hexes_count(const std::size_t& size) {
-    return 6 * (size * (size + 1) / 2) + 1;
+    return hexes_per_n * (size * (size + 1) / 2) + 1;
   }
 
   inline hex_cube_coords round_coordinates(const float& q, const float& r, float s = 0) {
@@ -23,9 +25,9 @@ namespace hex::hexmath {
     auto q_round = std::roundf(q);
     auto r_round = std::roundf(r);
     auto s_round = std::roundf(s);
-    const auto q_delta = abs(q_round - q);
-    const auto r_delta = abs(r_round - r);
-    const auto s_delta = abs(s_round - s);
+    const auto& q_delta = abs(q_round - q);
+    const auto& r_delta = abs(r_round - r);
+    const auto& s_delta = abs(s_round - s);
 
     if (q_delta > r_delta && q_delta > s_delta) q_round = -r_round - s_round;
     else if (r_delta > s_delta) r_round = -q_round - s_round;
@@ -35,42 +37,51 @@ namespace hex::hexmath {
   }
 
   inline std::size_t distance(const hex_cube_coords& a, const hex_cube_coords& b) {
-    return (std::abs(a.q - b.q) + std::abs(a.q + a.r - b.q - b.r) + std::abs(a.r - b.r)) / 2;
+    const auto [aq, ar, as] = a.get_qrs();
+    const auto [bq, br, bs] = b.get_qrs();
+
+    return (std::abs(aq - bq) + std::abs(aq + ar - bq - br) + std::abs(ar - br)) / 2;
   }
 
   inline std::size_t distance(const hexagon& a, const hexagon& b) {
-    return distance(a.coordinates, b.coordinates);
+    return distance(a.get_coords(), b.get_coords());
   }
 
   inline std::vector<hex_cube_coords> get_neighbors(const hex_cube_coords& position) {
     std::vector result{direction_vectors};
+
     for (auto&& neighbor: result) {
       neighbor += position;
     }
+
     return result;
   }
 
   inline std::vector<hex_cube_coords> get_neighbors(const hexagon& hex) {
-    return get_neighbors(hex.coordinates);
+    return get_neighbors(hex.get_coords());
   }
 
   inline std::vector<std::vector<hex_cube_coords>> get_neighbors(const std::vector<hex_cube_coords>& positions) {
     std::vector result{positions.size(), direction_vectors};
+
     for (auto i = 0; i < result.size(); i++) {
       for (auto&& neighbor: result[i]) {
         neighbor += positions[i];
       }
     }
+
     return result;
   }
 
   inline std::vector<std::vector<hex_cube_coords>> get_neighbors(const std::vector<hexagon>& hexes) {
     std::vector result{hexes.size(), direction_vectors};
+
     for (auto i = 0; i < result.size(); i++) {
       for (auto&& neighbor: result[i]) {
-        neighbor += hexes[i].coordinates;
+        neighbor += hexes[i].get_coords();
       }
     }
+
     return result;
   }
 
@@ -97,12 +108,12 @@ namespace hex::hexmath {
     const std::size_t size = get_hexmap_hexes_count(distance);
     std::vector<std::vector<hexagon>> result_vector{size};
     std::unordered_set<hexagon> visited{size};
-    auto hex_height = start.height;
-    auto hex_size = start.size;
-    auto flat_top = start.is_flat_top;
+    auto hex_height = start.get_height();
+    auto hex_size = start.get_size();
+    auto flat_top = start.is_flat_top();
     auto step = 1;
     auto emplace_neighbors = [&](const hex_cube_coords& neighbor) {
-      const auto& [it, success] = visited.emplace(flat_top, neighbor, hex_size, hex_height);
+      const auto [it, success] = visited.emplace(flat_top, neighbor, hex_size, hex_height);
       if (success) result_vector[step].emplace_back(*it);
     };
 
@@ -112,14 +123,17 @@ namespace hex::hexmath {
       std::ranges::for_each(get_neighbors(result_vector[step - 1]) | std::ranges::views::join, emplace_neighbors);
       step++;
     }
+
     return result_vector;
   }
 
   inline std::vector<glm::vec3> get_hexagon_vertices(const hexagon& hex) noexcept {
     std::vector<glm::vec3> vertices = hex.get_vertices();
+
     for (auto& vertex: vertices) {
       vertex += hex.get_local_position();
     }
+
     return vertices;
   }
 } // namespace hex::hexmath

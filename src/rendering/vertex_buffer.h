@@ -1,59 +1,11 @@
 #pragma once
 #include "../ecs/base_system.h"
-#include "component.h"
+#include "SDL3/SDL_gpu.h"
+#include "data.h"
 #include <entt/entity/registry.hpp>
 
 namespace rendering::system {
-  struct initialize_vertex_and_index_buffer final : ecs::system::base_system {
-    explicit initialize_vertex_and_index_buffer(entt::registry& registry) : base_system(registry) {}
-
-    ~initialize_vertex_and_index_buffer() noexcept override = default;
-
-    bool update() noexcept override {
-      using namespace component;
-      using namespace data;
-
-      const auto& vertex_view = registry.view<vertices_component, indices_component>(entt::exclude<vertex_buffer_component, vertex_transfer_buffer_component>);
-
-      if (!registry.valid(vertex_view.front())) return true;
-
-      const auto& gpu_device_view = registry.view<gpu_device_component>();
-      const auto& gpu_device_entity = gpu_device_view.front();
-
-      if (!registry.valid(gpu_device_entity)) {
-        SDL_Log("Cannot initialize vertex and index buffers. GPU device not found.");
-        return false;
-      }
-
-      auto* gpu_device = gpu_device_view.get<gpu_device_component>(gpu_device_entity).value;
-      const auto& copy_pass_view = registry.view<gpu_copy_pass_component>();
-      const auto& copy_pass_entity = copy_pass_view.front();
-
-      if (!registry.valid(copy_pass_entity)) {
-        SDL_Log("Cannot initialize vertex and index buffers. Copy pass was not began.");
-        return false;
-      }
-
-      auto* copy_pass = copy_pass_view.get<gpu_copy_pass_component>(copy_pass_view.front()).value;
-
-      for (auto&& [entity, vertices, indices]: vertex_view.each()) {
-        SDL_GPUBuffer* vertex_buffer = nullptr;
-        SDL_GPUBuffer* index_buffer = nullptr;
-        SDL_GPUTransferBuffer* vertex_transfer_buffer = nullptr;
-        SDL_GPUTransferBuffer* index_transfer_buffer = nullptr;
-
-        create_vertex_buffer(gpu_device, copy_pass, vertex_buffer, vertex_transfer_buffer, vertices.value);
-        create_index_buffer(gpu_device, copy_pass, index_buffer, index_transfer_buffer, indices.value);
-
-        registry.emplace<vertex_buffer_component>(entity, vertex_buffer);
-        registry.emplace<index_buffer_component>(entity, index_buffer);
-        registry.emplace<vertex_transfer_buffer_component>(entity, vertex_transfer_buffer);
-        registry.emplace<index_transfer_buffer_component>(entity, index_transfer_buffer);
-      }
-
-      return true;
-    }
-
+  class initialize_vertex_and_index_buffer final : public ecs::system::base_system {
     static void create_vertex_buffer(
         SDL_GPUDevice* gpu_device, SDL_GPUCopyPass* copy_pass, SDL_GPUBuffer*& vertex_buffer, SDL_GPUTransferBuffer*& transfer_buffer,
         const std::vector<data::vertex>& vertices) noexcept {
@@ -101,46 +53,17 @@ namespace rendering::system {
       SDL_GPUBufferRegion indices_region{index_buffer, 0, buffer_info.size};
       SDL_UploadToGPUBuffer(copy_pass, &indices_location, &indices_region, true);
     }
+
+  public:
+    explicit initialize_vertex_and_index_buffer(entt::registry& registry) : base_system(registry) {}
+
+    bool update() noexcept override;
   };
 
-  struct release_vertex_and_index_buffer final : ecs::system::base_system {
+  class release_vertex_and_index_buffer final : public ecs::system::base_system {
+  public:
     explicit release_vertex_and_index_buffer(entt::registry& registry) : base_system(registry) {}
 
-    ~release_vertex_and_index_buffer() noexcept override = default;
-
-    bool update() noexcept override {
-      using namespace component;
-      using namespace data;
-
-      const auto& vertex_view = registry.view<
-          vertex_buffer_component, vertex_transfer_buffer_component, index_buffer_component, index_transfer_buffer_component,
-          vertex_and_index_buffer_release_request>();
-
-      if (!registry.valid(vertex_view.front())) return true;
-      mark_to_destroy();
-
-      const auto& gpu_device_view = registry.view<gpu_device_component>();
-      const auto& gpu_device_entity = gpu_device_view.front();
-
-      if (!registry.valid(gpu_device_entity)) {
-        SDL_Log("Cannot destroy vertex and index buffers. GPU device has been destroyed.");
-        return false;
-      }
-
-      auto* gpu_device = gpu_device_view.get<gpu_device_component>(gpu_device_entity).value;
-
-      for (auto&& [entity, vertex_buffer, vertex_transfer_buffer, index_buffer, index_transfer_buffer]: vertex_view.each()) {
-        SDL_ReleaseGPUBuffer(gpu_device, vertex_buffer.value);
-        SDL_ReleaseGPUBuffer(gpu_device, index_buffer.value);
-        SDL_ReleaseGPUTransferBuffer(gpu_device, vertex_transfer_buffer.value);
-        SDL_ReleaseGPUTransferBuffer(gpu_device, index_transfer_buffer.value);
-
-        registry.remove<
-            vertex_buffer_component, vertex_transfer_buffer_component, index_buffer_component, index_transfer_buffer_component,
-            vertex_and_index_buffer_release_request>(entity);
-      }
-
-      return true;
-    }
+    bool update() noexcept override;
   };
 } // namespace rendering::system

@@ -1,6 +1,7 @@
 #pragma once
-#include "glm/detail/type_quat.hpp"
-#include "glm/fwd.hpp"
+#include "glm/vec3.hpp"
+#include "glm/mat4x4.hpp"
+#include "glm/gtc/quaternion.hpp"
 
 namespace transform::component {
   struct field_of_view_component {

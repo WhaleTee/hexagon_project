@@ -1,7 +1,9 @@
 #define SDL_MAIN_USE_CALLBACKS
-#include "camera/normalize_camera_up.h"
-#include "camera/projection.h"
+
+#include "camera/component.h"
+#include "camera/ortho_projection.h"
 #include "camera/view.h"
+#include "component_tag.h"
 #include "ecs/game_world.h"
 #include "event/game_quit_event.h"
 #include "event/game_world_destroy_event.h"
@@ -10,10 +12,12 @@
 #include "rendering/command_buffer.h"
 #include "rendering/component.h"
 #include "rendering/copy_pass.h"
+#include "rendering/render.h"
 #include "rendering/render_pass.h"
 #include "rendering/render_pipeline.h"
 #include "rendering/vertex_buffer.h"
 #include "rendering/window.h"
+#include "transform/component.h"
 #include "transform/model.h"
 #include <SDL3/SDL_main.h>
 #include <numeric>
@@ -28,21 +32,35 @@ namespace {
 
   struct hexagon_game_world final : ecs::game_world {
     hexagon_game_world() {
-
       // create entities
       const auto window_entity = registry.create();
       const auto camera_entity = registry.create();
+      const auto hexmap_entity = registry.create();
 
-      hex::hexmap hexmap{3, 70.f, 1, true};
-      for (const auto hex: hexmap.get_hexes()) {
+      // create hexmap demo
+      constexpr glm::vec4 vertex_color{1.f, 1.f, 1.f, 1.f};
+      const hex::hexmap hexmap{3, 70.f, 1, true};
+
+      registry.emplace<model_matrix_component>(hexmap_entity, glm::mat4{1});
+      registry.emplace<position_component>(hexmap_entity, glm::vec3{0});
+      registry.emplace<rotation_component>(hexmap_entity, glm::quat{glm::vec3{0}});
+      registry.emplace<scale_component>(hexmap_entity, glm::vec3{1});
+      auto& hexmap_render_model = registry.emplace<render_model_component>(hexmap_entity, std::vector<entt::entity>{hex::hexmath::get_hexmap_hexes_count(3)});
+
+      std::vector<rendering::data::vertex> vertices{6};
+
+      for (auto&& hex: hexmap.get_hexes()) {
         const auto hexagon_entity = registry.create();
-        std::vector<rendering::data::vertex> vertices{6};
-        auto hex_vertices = hex::hexmath::get_hexagon_vertices(hex);
+        const auto& hex_vertices = hex::hexmath::get_hexagon_vertices(hex);
+
         for (int i = 0; i < 6; i++) {
-          vertices[i] = rendering::data::vertex{hex_vertices[i], glm::vec4{1.f, 1.f, 1.f, 1.f}};
+          vertices[i] = {hex_vertices[i], vertex_color};
         }
-        registry.emplace<vertices_component>(hexagon_entity, std::move(vertices));
+
+        registry.emplace<vertices_component>(hexagon_entity, vertices);
         registry.emplace<indices_component>(hexagon_entity, std::move(hex::hexagon::get_draw_line_strip_indices()));
+
+        hexmap_render_model.children.emplace_back(hexagon_entity);
       }
 
       // config gpu device
@@ -62,25 +80,13 @@ namespace {
       window_settings.width = 1280;
 
       // config camera
+      auto camera_position = glm::vec3{0, 0, -1};
+
       auto& camera_setting = registry.emplace<camera_setting_component>(camera_entity);
       camera_setting.width = window_settings.width;
       camera_setting.height = window_settings.height;
       camera_setting.near = 0.1f;
       camera_setting.far = 100.f;
-
-      auto camera_position = glm::vec3{0, 0, -1};
-      // glm::quat pitch = glm::angleAxis(glm::radians(45.f), glm::vec3(1, 0, 0));
-      // glm::quat yaw = glm::angleAxis(glm::radians(45.f), glm::vec3(0, 1, 0));
-      // registry.emplace<position_component>(camera_entity, camera_position);
-      // auto mat = glm::mat4_cast(pitch * yaw);
-
-
-      // std::cout << "-------- matrix start --------" << std::endl;
-      // std::cout << '[' << mat[0][0] << ", " << mat[0][1] << ", " << mat[0][2]<< ", " << mat[0][3] << ']' << std::endl;
-      // std::cout << '[' << mat[1][0] << ", " << mat[1][1] << ", " << mat[1][2]<< ", " << mat[1][3] << ']' << std::endl;
-      // std::cout << '[' << mat[2][0] << ", " << mat[2][1] << ", " << mat[2][2]<< ", " << mat[2][3] << ']' << std::endl;
-      // std::cout << '[' << mat[3][0] << ", " << mat[3][1] << ", " << mat[3][2]<< ", " << mat[3][3] << ']' << std::endl;
-      // std::cout << "-------- matrix end --------" << std::endl;
 
       registry.emplace<position_component>(camera_entity, camera_position);
       registry.emplace<rotation_component>(camera_entity, glm::lookAt(camera_position, glm::vec3{0}, glm::vec3{0, 1, 0}));
@@ -89,8 +95,11 @@ namespace {
 
       registry.emplace<model_matrix_component>(camera_entity, glm::mat4{1});
       registry.emplace<projection_component>(camera_entity);
-      registry.emplace<entt::tag<component_tag::orthographic>>(camera_entity);
+      registry.emplace<set_projection_request>(camera_entity);
+      registry.emplace<entt::tag<component_tag::camera_entity>>(camera_entity);
+      registry.emplace<entt::tag<component_tag::orthographic_projection>>(camera_entity);
 
+      // rotate camera for iso view
       registry.emplace<rotation_request>(camera_entity, glm::vec3{45, 0, 45});
 
       // init systems
@@ -98,25 +107,24 @@ namespace {
       system_manager.create_system<initialize_render_pipeline>();
       system_manager.create_system<release_render_pipeline>();
 
-      system_manager.create_system<initialize_command_buffer<component_tag::copy>>();
+      system_manager.create_system<initialize_command_buffer<component_tag::copy_cmd_buffer>>();
       system_manager.create_system<begin_copy_pass>();
       system_manager.create_system<initialize_vertex_and_index_buffer>();
       system_manager.create_system<release_vertex_and_index_buffer>();
       system_manager.create_system<end_copy_pass>();
-      system_manager.create_system<submit_command_buffer<component_tag::copy>>();
+      system_manager.create_system<submit_command_buffer<component_tag::copy_cmd_buffer>>();
 
       // camera systems
       system_manager.create_system<model_matrix_system>();
       system_manager.create_system<view_matrix_system>();
-      // system_manager.create_system<normalize_camera_up_system>();
       system_manager.create_system<camera_orthographic_projection_system>();
 
       // rendering systems
-      system_manager.create_system<initialize_command_buffer<component_tag::render>>();
+      system_manager.create_system<initialize_command_buffer<component_tag::render_cmd_buffer>>();
       system_manager.create_system<begin_render_pass>();
       system_manager.create_system<render_mvp_system>();
       system_manager.create_system<end_render_pass>();
-      system_manager.create_system<submit_command_buffer<component_tag::render>>();
+      system_manager.create_system<submit_command_buffer<component_tag::render_cmd_buffer>>();
 
       system_manager.create_system<destroy_window>(dispatcher);
     }
