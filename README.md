@@ -1,12 +1,12 @@
 ## What is this for?
 
-This project was created for learning purpose. The main object of study is SDL and it's GPU API.
+This project was created for learning purposes. The main object of study is SDL and its GPU API.
 
 
-## What have been implemented?
+## What has been implemented?
 
 - ECS core with EnTT
-- platform independent SDL main callbacks 
+- platform independent SDL main callbacks
 - SDL GPU cycle
 - copy and render pipelines
 - copy and render command buffers
@@ -16,12 +16,12 @@ This project was created for learning purpose. The main object of study is SDL a
 - isometric camera
 - Model matrix
 - MVP projection
-- drawing hexagonal grid using strip line method
+- drawing hexagonal grid using the strip line method
 
-Also I spend some time to learn how to build and use SDL_shadercross and wrote python script, but cutted it out from project.<br/>
-Shaders for example was compiled with shadercross.<br/>
+Also, I spent some time learning how to build and use SDL_shadercross and wrote python script but cut it out from the project.<br/>
+Shaders for example, were compiled with shadercross.<br/>
 <br/>
-Example can be found in src/example
+An example can be found in src/example
 
 ### Tech stack
 - C++
@@ -34,5 +34,4 @@ Example can be found in src/example
 - G++
 - MinGW
 - Ninga
-
 
