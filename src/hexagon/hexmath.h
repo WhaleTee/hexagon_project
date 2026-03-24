@@ -1,25 +1,24 @@
 #pragma once
-#include "hex_cube_coords.h"
-#include "hexagon.h"
 #include <algorithm>
-#include <numeric>
+#include <cmath>
 #include <ranges>
 #include <unordered_set>
-#include <cmath>
+#include <vector>
 
 namespace hex::hexmath {
   static constexpr int hexes_per_n{6};
+
   enum hex_cube_direction : std::size_t { R = 0, QR, Q, SQ, S, RS };
 
-  inline const std::vector<hex_cube_coords> direction_vectors{
-      {1, 0, -1}, {1, -1, 0}, {0, -1, 1}, {-1, 0, 1}, {-1, +1, 0}, {0, +1, -1},
-  };
+  static std::vector<hex_cube_coords> direction_vectors() {
+    return {{1, 0, -1}, {1, -1, 0}, {0, -1, 1}, {-1, 0, 1}, {-1, +1, 0}, {0, +1, -1}};
+  }
 
-  inline std::size_t get_hexmap_hexes_count(const std::size_t& size) {
+  static std::size_t get_hexmap_hexes_count(const std::size_t& size) {
     return hexes_per_n * (size * (size + 1) / 2) + 1;
   }
 
-  inline hex_cube_coords round_coordinates(const float& q, const float& r, float s = 0) {
+  static hex_cube_coords round_coordinates(const float& q, const float& r, float s = 0) {
     if (s <= 0) s = -q - r;
 
     auto q_round = std::roundf(q);
@@ -36,19 +35,16 @@ namespace hex::hexmath {
     return hex_cube_coords{static_cast<int>(q_round), static_cast<int>(r_round), static_cast<int>(s_round)};
   }
 
-  inline std::size_t distance(const hex_cube_coords& a, const hex_cube_coords& b) {
-    const auto [aq, ar, as] = a.get_qrs();
-    const auto [bq, br, bs] = b.get_qrs();
-
-    return (std::abs(aq - bq) + std::abs(aq + ar - bq - br) + std::abs(ar - br)) / 2;
+  static std::size_t distance(const hex_cube_coords& a, const hex_cube_coords& b) {
+    return (std::abs(a.q - b.q) + std::abs(a.q + a.r - b.q - b.r) + std::abs(a.r - b.r)) / 2;
   }
 
-  inline std::size_t distance(const hexagon& a, const hexagon& b) {
+  static std::size_t distance(const hexagon& a, const hexagon& b) {
     return distance(a.get_coords(), b.get_coords());
   }
 
-  inline std::vector<hex_cube_coords> get_neighbors(const hex_cube_coords& position) {
-    std::vector result{direction_vectors};
+  static std::vector<hex_cube_coords> get_neighbors(const hex_cube_coords& position) {
+    std::vector result{direction_vectors()};
 
     for (auto&& neighbor: result) {
       neighbor += position;
@@ -57,12 +53,12 @@ namespace hex::hexmath {
     return result;
   }
 
-  inline std::vector<hex_cube_coords> get_neighbors(const hexagon& hex) {
+  static std::vector<hex_cube_coords> get_neighbors(const hexagon& hex) {
     return get_neighbors(hex.get_coords());
   }
 
-  inline std::vector<std::vector<hex_cube_coords>> get_neighbors(const std::vector<hex_cube_coords>& positions) {
-    std::vector result{positions.size(), direction_vectors};
+  static std::vector<std::vector<hex_cube_coords>> get_neighbors(const std::vector<hex_cube_coords>& positions) {
+    std::vector result{positions.size(), direction_vectors()};
 
     for (auto i = 0; i < result.size(); i++) {
       for (auto&& neighbor: result[i]) {
@@ -73,8 +69,8 @@ namespace hex::hexmath {
     return result;
   }
 
-  inline std::vector<std::vector<hex_cube_coords>> get_neighbors(const std::vector<hexagon>& hexes) {
-    std::vector result{hexes.size(), direction_vectors};
+  static std::vector<std::vector<hex_cube_coords>> get_neighbors(const std::vector<hexagon>& hexes) {
+    std::vector result{hexes.size(), direction_vectors()};
 
     for (auto i = 0; i < result.size(); i++) {
       for (auto&& neighbor: result[i]) {
@@ -85,11 +81,11 @@ namespace hex::hexmath {
     return result;
   }
 
-  inline hex_cube_coords get_direction_neighbor(const hex_cube_coords& position, const hex_cube_direction& direction) {
-    return position + direction_vectors[direction];
+  static hex_cube_coords get_direction_neighbor(const hex_cube_coords& position, const hex_cube_direction& direction) {
+    return position + direction_vectors()[direction];
   }
 
-  inline std::vector<hex_cube_coords> get_direction_neighbors(const hex_cube_coords& start, const hex_cube_direction& direction, const std::size_t& distance) {
+  static std::vector<hex_cube_coords> get_direction_neighbors(const hex_cube_coords& start, const hex_cube_direction& direction, const std::size_t& distance) {
     std::vector<hex_cube_coords> result{};
 
     result.reserve(distance);
@@ -104,7 +100,7 @@ namespace hex::hexmath {
     return result;
   }
 
-  inline std::vector<std::vector<hexagon>> construct_all_for_distance(const hexagon& start, const std::size_t& distance) {
+  static std::vector<std::vector<hexagon>> construct_all_for_distance(const hexagon& start, const std::size_t& distance) {
     const std::size_t size = get_hexmap_hexes_count(distance);
     std::vector<std::vector<hexagon>> result_vector{size};
     std::unordered_set<hexagon> visited{size};
@@ -127,7 +123,7 @@ namespace hex::hexmath {
     return result_vector;
   }
 
-  inline std::vector<glm::vec3> get_hexagon_vertices(const hexagon& hex) noexcept {
+  static std::vector<glm::vec3> get_hexagon_vertices(const hexagon& hex) noexcept {
     std::vector<glm::vec3> vertices = hex.get_vertices();
 
     for (auto& vertex: vertices) {

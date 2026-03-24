@@ -52,7 +52,7 @@ bool rendering::system::initialize_render_pipeline::update() noexcept {
   SDL_ReleaseGPUShader(gpu_device, fragmentShader);
 
   if (pipeline == nullptr) {
-    SDL_Log("Failed to create opaque pipeline: %s", SDL_GetError());
+    SDL_Log("Failed to create render pipeline: %s", SDL_GetError());
     return false;
   }
 
@@ -68,7 +68,7 @@ bool rendering::system::release_render_pipeline::update() noexcept {
   const auto& gpu_device_entity = gpu_device_view.front();
 
   if (!registry.valid(gpu_device_entity)) {
-    SDL_Log("Cannot destroy pipeline. GPU device has been destroyed.");
+    SDL_Log("Cannot destroy render pipeline. GPU device has been destroyed.");
     return false;
   }
 

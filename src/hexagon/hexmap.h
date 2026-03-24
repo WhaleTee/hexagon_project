@@ -7,7 +7,7 @@
 namespace hex {
   class hexmap {
     glm::vec3 position{};
-    int map_size;
+    std::size_t map_size;
     float hex_size;
     float hex_height;
     bool is_flat_top;

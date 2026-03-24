@@ -1,9 +1,9 @@
 #include "hexmap.h"
 #include "hexmath.h"
-#include  <cmath>
+#include <cmath>
 
 hex::hexmap::hexmap(const std::size_t& size, const float& hex_size, const float& hex_height, const bool& flat_top) :
-    map_size(static_cast<int>(size)), hex_size(hex_size), hex_height(hex_height), is_flat_top(flat_top) {
+    map_size(size), hex_size(hex_size), hex_height(hex_height), is_flat_top(flat_top) {
   build_hexmap();
 }
 
@@ -14,7 +14,7 @@ void hex::hexmap::build_hexmap() noexcept {
   hexes.reserve(hexmath::get_hexmap_hexes_count(map_size));
   hexes.insert(start_hex);
 
-  for (auto&& hex : hexmath::construct_all_for_distance(start_hex, map_size) | std::views::join) {
+  for (auto&& hex: hexmath::construct_all_for_distance(start_hex, map_size) | std::views::join) {
     hexes.insert(hex);
   }
 }
@@ -30,7 +30,7 @@ void hex::hexmap::build_hexmap() noexcept {
   const auto& q = is_flat_top ? 2.f / 3 * x : sqrt_3_b_3 * x - 1.f / 3 * y;
   const auto& r = is_flat_top ? -1.f / 3 * x + sqrt_3_b_3 * y : 2.f / 3 * y;
 
-  return hexagon{is_flat_top, {q, r}, hex_size, hex_height};
+  return hexagon{is_flat_top, hexmath::round_coordinates(q, r), hex_size, hex_height};
 }
 
 [[nodiscard]] glm::vec3 hex::hexmap::get_hexagon_world_position(const hexagon& hex) const noexcept {

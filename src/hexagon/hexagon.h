@@ -37,13 +37,9 @@ namespace hex {
 
     [[nodiscard]] bool is_flat_top() const noexcept;
 
-    bool operator==(const hexagon& other) const {
-      return get_local_position() == other.get_local_position();
-    }
+    bool operator==(const hexagon& other) const noexcept;
 
-    bool operator<(const hexagon& other) const {
-      return this->coordinates.get_distance_to(zero_hex_cube_coords) < other.coordinates.get_distance_to(zero_hex_cube_coords);
-    }
+    bool operator<(const hexagon& other) const noexcept;
   };
 } // namespace hex
 

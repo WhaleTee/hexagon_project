@@ -6,8 +6,6 @@
 #include "SDL3/SDL_log.h"
 #include "component.h"
 
-#include <iostream>
-
 bool rendering::system::render_mvp_system::update() noexcept {
   using namespace component;
   using namespace camera::component;
@@ -50,18 +48,13 @@ bool rendering::system::render_mvp_system::update() noexcept {
     for (auto&& [entity, render_model]: registry.view<render_model_component>().each()) {
       if (registry.all_of<model_matrix_component>(entity)) {
         const auto& model_matrix = registry.get<model_matrix_component>(entity).value;
-        const auto mvp = camera_projection_matrix * camera_view_matrix * model_matrix;
+        const auto& mvp = camera_projection_matrix * camera_view_matrix * model_matrix;
 
         SDL_PushGPUVertexUniformData(render_cmd_buffer, 0, &mvp, sizeof(mvp));
 
         for (auto&& child: render_model.children) {
           if (registry.all_of<vertices_component, vertex_buffer_component, indices_component, index_buffer_component>(child)) {
-            const auto [vertices, vertex_buffer, indices, index_buffer] =
-                registry.get<vertices_component, vertex_buffer_component, indices_component, index_buffer_component>(child);
-            // std::cout << "--------- vertices of " << static_cast<std::uint32_t>(child) << " ----------" << std::endl;
-            // for (auto vertex : vertices.value) {
-            //   std::cout << '[' << vertex.position.x << ", " << vertex.position.y << ", " << vertex.position.z << ']' << std::endl;
-            // }
+            const auto [vertices, vertex_buffer, indices, index_buffer] = registry.get<vertices_component, vertex_buffer_component, indices_component, index_buffer_component>(child);
 
             SDL_GPUBufferBinding vertex_binding{vertex_buffer.value, 0};
             SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_binding, 1);

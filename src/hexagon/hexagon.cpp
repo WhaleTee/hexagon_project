@@ -1,8 +1,8 @@
 #include "hexagon.h"
-#include "hexmath.h"
 #include "SDL3/SDL_stdinc.h"
-#include <stdexcept>
+#include "hexmath.h"
 #include <cmath>
+#include <stdexcept>
 
 hex::hexagon::hexagon(const bool& flat_top, const hex_cube_coords& cords, const float& size, const float& height) noexcept :
     coordinates{cords}, size{size}, height{height}, flat_top{flat_top} {}
@@ -27,9 +27,8 @@ hex::hexagon::hexagon(const bool& flat_top, const hex_cube_coords& cords, const 
 }
 
 [[nodiscard]] glm::vec3 hex::hexagon::get_local_position() const noexcept {
-  const auto [q, r, s] = coordinates.get_qrs();
-  const auto& qf = static_cast<float>(q);
-  const auto& rf = static_cast<float>(r);
+  const auto& qf = static_cast<float>(coordinates.q);
+  const auto& rf = static_cast<float>(coordinates.r);
 
   if (flat_top) return {3.f / 2 * qf * size, (sqrtf(3) / 2 * qf + sqrtf(3) * rf) * size, 0};
 
@@ -50,4 +49,12 @@ float hex::hexagon::get_height() const noexcept {
 
 bool hex::hexagon::is_flat_top() const noexcept {
   return flat_top;
+}
+
+bool hex::hexagon::operator==(const hexagon& other) const noexcept {
+  return get_local_position() == other.get_local_position();
+}
+
+bool hex::hexagon::operator<(const hexagon& other) const noexcept {
+  return hexmath::distance(this->coordinates, zero_hex_cube_coords) < hexmath::distance(other.coordinates, zero_hex_cube_coords);
 }

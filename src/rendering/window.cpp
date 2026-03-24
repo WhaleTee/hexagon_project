@@ -57,7 +57,5 @@ bool rendering::system::destroy_window::update() noexcept {
 
   registry.remove<window_component, gpu_device_component, window_destroy_request>(destroy_request_entity);
 
-  event::game_world_destroy_event::invoker(dispatcher);
-
   return true;
 }
