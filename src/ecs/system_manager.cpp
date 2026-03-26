@@ -1,11 +1,8 @@
 #include "system_manager.h"
 #include <numeric>
-#include <entt/signal/dispatcher.hpp>
 
 namespace ecs {
-  system_manager::system_manager(entt::registry& registry, entt::dispatcher& dispatcher) noexcept : registry(registry), dispatcher(dispatcher) {
-    this->dispatcher.sink<event::game_quit_event>().connect<&system_manager::handle_game_quit_event>(*this);
-  }
+  system_manager::system_manager(entt::registry& registry, entt::dispatcher& dispatcher) noexcept : registry(registry), dispatcher(dispatcher) {}
 
   system::base_system& system_manager::add_system(system_ptr&& system) noexcept {
     return *systems.emplace_back(std::move(system));
@@ -31,7 +28,7 @@ namespace ecs {
     return !systems.empty();
   }
 
-  void system_manager::handle_game_quit_event(event::game_quit_event event) noexcept {
+  void system_manager::destroy_systems() noexcept {
     destroy_all = true;
   }
 } // namespace ecs

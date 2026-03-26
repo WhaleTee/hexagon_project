@@ -5,6 +5,7 @@
 namespace ecs {
   void game_world::run() noexcept {
     event::game_start_event::invoker(this->dispatcher);
+    register_event_listener<event::game_quit_event, &system_manager::destroy_systems>(system_manager);
   }
 
   void game_world::update() noexcept {

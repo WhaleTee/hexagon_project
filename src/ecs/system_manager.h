@@ -37,6 +37,6 @@ namespace ecs {
 
     [[nodiscard]] bool has_systems() const noexcept;
 
-    void handle_game_quit_event(event::game_quit_event event) noexcept;
+    void destroy_systems() noexcept;
   };
 } // namespace ecs
